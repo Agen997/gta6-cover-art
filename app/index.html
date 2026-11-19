@@ -3,21 +3,151 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Cover Snap</title>
-<link rel="stylesheet" href="./style.css">
+<title>Neon Poster Studio — GTA-style cover maker</title>
+<link rel="stylesheet" href="style.css">
 </head>
 <body>
-<main class="app">
-  <section class="controls">
-    <h1>Cover Snap</h1>
-    <p>A photo and a caption, made into a square cover.</p>
-    <label>Photo <input id="photo" type="file" accept="image/*"></label>
-    <label>Caption <input id="caption" type="text" maxlength="40" value="Sunset Heist"></label>
-    <button id="export" type="button">Export PNG 1080 x 1080</button>
-    <p id="status" role="status"></p>
+<header id="topbar">
+  <div id="brand">
+    <h1 id="brandName">NEON POSTER STUDIO</h1>
+    <p id="brandTag">Turn any photo into GTA-style cover art. Runs offline — your photos never leave this machine.</p>
+  </div>
+  <button id="downloadTop" class="primaryBtn" type="button">Download PNG</button>
+</header>
+
+<main id="workspace">
+  <section id="stageWrap">
+    <div id="stageFrame">
+      <canvas id="stage" width="960" height="540"></canvas>
+      <div id="dropHint">Drop photos here</div>
+    </div>
+    <p id="stageHelp">Click a panel to select it, drag to move its photo, scroll to zoom. Drop image files anywhere on the stage to add them.</p>
+    <div id="stageBar">
+      <span id="coverInfo">1920 × 1080 · Grid 2×2 · Vice Sunset</span>
+      <span id="photoCount">2 photos loaded</span>
+    </div>
   </section>
-  <canvas id="cover" width="1080" height="1080" aria-label="The cover"></canvas>
+
+  <aside id="controls">
+    <section class="ctlGroup" id="groupPhotos">
+      <h2>1 · Photos</h2>
+      <div class="row">
+        <button id="addPhotos" type="button">Add photos…</button>
+        <button id="useSamples" type="button">Use sample photos</button>
+      </div>
+      <input id="fileInput" type="file" accept="image/*" multiple hidden>
+      <div id="pool" aria-label="Photo pool"></div>
+      <p class="hint">Click a thumbnail to put it in the selected panel. “Fill all” spreads the pool across every panel.</p>
+      <div class="row">
+        <button id="fillAll" type="button">Fill all panels</button>
+        <button id="shufflePanels" type="button">Shuffle</button>
+      </div>
+    </section>
+
+    <section class="ctlGroup" id="groupLayout">
+      <h2>2 · Layout</h2>
+      <div class="segRow" id="layoutRow">
+        <button type="button" data-layout="full">Full</button>
+        <button type="button" data-layout="split">Split</button>
+        <button type="button" data-layout="trio">Trio</button>
+        <button type="button" data-layout="grid" class="on">Grid 2×2</button>
+        <button type="button" data-layout="strip">Strip</button>
+      </div>
+    </section>
+
+    <section class="ctlGroup" id="groupPanel">
+      <h2>3 · Selected panel</h2>
+      <label class="sliderLabel" for="zoomRange">Photo zoom <span id="zoomVal">100%</span></label>
+      <input id="zoomRange" type="range" min="100" max="300" value="100">
+      <div class="row">
+        <button id="centerPanel" type="button">Center photo</button>
+        <button id="fitPanel" type="button">Reset crop</button>
+      </div>
+    </section>
+
+    <section class="ctlGroup" id="groupGrade">
+      <h2>4 · Color grade</h2>
+      <div class="segRow wrap" id="gradeRow">
+        <button type="button" data-grade="vice" class="on">Vice Sunset</button>
+        <button type="button" data-grade="neon">Neon Night</button>
+        <button type="button" data-grade="golden">Golden Hour</button>
+        <button type="button" data-grade="vhs">Retro VHS</button>
+        <button type="button" data-grade="clean">Clean</button>
+      </div>
+    </section>
+
+    <section class="ctlGroup" id="groupCaption">
+      <h2>5 · Caption</h2>
+      <label class="fieldLabel" for="captionText">Title</label>
+      <input id="captionText" type="text" value="NEON SHORES" maxlength="40">
+      <label class="fieldLabel" for="subtitleText">Subtitle</label>
+      <input id="subtitleText" type="text" value="vice city nights" maxlength="48">
+      <div class="row two">
+        <div>
+          <label class="fieldLabel" for="fontSelect">Lettering</label>
+          <select id="fontSelect">
+            <option value="black" selected>Poster Black</option>
+            <option value="impact">Impact Bold</option>
+            <option value="condensed">Condensed</option>
+            <option value="serif">Serif Bold</option>
+            <option value="mono">Typewriter</option>
+          </select>
+        </div>
+        <div>
+          <label class="fieldLabel" for="captionColor">Color</label>
+          <select id="captionColor">
+            <option value="sunset" selected>Sunset gradient</option>
+            <option value="white">White</option>
+            <option value="neon">Neon pink</option>
+            <option value="gold">Gold</option>
+            <option value="cyan">Cyan</option>
+          </select>
+        </div>
+      </div>
+      <label class="sliderLabel" for="captionSize">Title size <span id="captionSizeVal">12%</span></label>
+      <input id="captionSize" type="range" min="6" max="22" value="12">
+      <div class="segRow" id="captionPosRow">
+        <button type="button" data-pos="top">Top</button>
+        <button type="button" data-pos="center">Center</button>
+        <button type="button" data-pos="bottom" class="on">Bottom</button>
+      </div>
+      <div class="checkRow">
+        <label><input id="capOutline" type="checkbox" checked> Outline</label>
+        <label><input id="capShadow" type="checkbox" checked> Shadow</label>
+        <label><input id="capUpper" type="checkbox" checked> UPPERCASE</label>
+      </div>
+    </section>
+
+    <section class="ctlGroup" id="groupFrame">
+      <h2>6 · Frame &amp; finish</h2>
+      <div class="segRow" id="frameRow">
+        <button type="button" data-frame="poster" class="on">White poster</button>
+        <button type="button" data-frame="neon">Neon edge</button>
+        <button type="button" data-frame="none">None</button>
+      </div>
+      <div class="checkRow">
+        <label><input id="fxVignette" type="checkbox" checked> Vignette</label>
+        <label><input id="fxGrain" type="checkbox"> Film grain</label>
+      </div>
+    </section>
+
+    <section class="ctlGroup" id="groupExport">
+      <h2>7 · Export PNG</h2>
+      <div class="segRow wrap" id="sizeRow">
+        <button type="button" data-size="1080x1350">1080×1350 Portrait</button>
+        <button type="button" data-size="1080x1080">1080×1080 Square</button>
+        <button type="button" data-size="1200x630">1200×630 Wide</button>
+        <button type="button" data-size="1920x1080" class="on">1920×1080 HD</button>
+      </div>
+      <button id="downloadBtn" class="primaryBtn big" type="button">Download PNG</button>
+      <p class="hint">Rendered on your machine at full size. Nothing is uploaded, ever.</p>
+    </section>
+  </aside>
 </main>
-<script type="module" src="./src/main.js"></script>
+
+<footer id="footNote">Neon Poster Studio — an original cover maker. No game logos, artwork or fonts; lettering uses fonts already on your system.</footer>
+
+<script type="module" src="src/main.js"></script>
+<script type="module" src="src/shots.js"></script>
 </body>
 </html>
